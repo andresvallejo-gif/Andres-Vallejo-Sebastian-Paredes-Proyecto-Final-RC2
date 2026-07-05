@@ -245,7 +245,81 @@ void listarMaterias(void) {
                calcularNotaFinal(n));
     }
 }
+void promedioPorEstudiante(void) {
+    char codigoEstudiante[MAX_CODIGO];
+    float suma = 0.0f;
+    int contador = 0;
 
+    printf("Codigo de estudiante: ");
+    safeReadLine(codigoEstudiante, sizeof(codigoEstudiante));
+
+    for (int i = 0; i < registroCount; i++) {
+        if (strcmp(registros[i].codigoEstudiante, codigoEstudiante) == 0) {
+            suma += calcularNotaFinal(&registros[i]);
+            contador++;
+        }
+    }
+
+    if (contador == 0) {
+        printf("No se encontraron materias para ese estudiante.\n");
+    } else {
+        printf("Promedio del estudiante: %.2f\n", suma / contador);
+    }
+}
+
+void promedioPorMateria(void) {
+    char codigoMateria[MAX_CODIGO];
+    float suma = 0.0f;
+    int contador = 0;
+
+    printf("Codigo de materia: ");
+    safeReadLine(codigoMateria, sizeof(codigoMateria));
+
+    for (int i = 0; i < registroCount; i++) {
+        if (strcmp(registros[i].codigoMateria, codigoMateria) == 0) {
+            suma += calcularNotaFinal(&registros[i]);
+            contador++;
+        }
+    }
+
+    if (contador == 0) {
+        printf("No se encontraron estudiantes en esa materia.\n");
+    } else {
+        printf("Promedio de la materia: %.2f\n", suma / contador);
+    }
+}
+
+void aprobadosReprobadosPorMateria(void) {
+    char codigoMateria[MAX_CODIGO];
+    char buffer[32];
+    float umbral;
+    int aprobados = 0;
+    int reprobados = 0;
+
+    printf("Codigo de materia: ");
+    safeReadLine(codigoMateria, sizeof(codigoMateria));
+
+    printf("Umbral de aprobacion: ");
+    safeReadLine(buffer, sizeof(buffer));
+
+    if (sscanf(buffer, "%f", &umbral) != 1) {
+        printf("Umbral invalido.\n");
+        return;
+    }
+
+    for (int i = 0; i < registroCount; i++) {
+        if (strcmp(registros[i].codigoMateria, codigoMateria) == 0) {
+            if (calcularNotaFinal(&registros[i]) >= umbral) {
+                aprobados++;
+            } else {
+                reprobados++;
+            }
+        }
+    }
+
+    printf("Aprobados: %d\n", aprobados);
+    printf("Reprobados: %d\n", reprobados);
+}
 void mostrarMenu(void) {
     printf("\n--- Menu principal ---\n");
     printf("1. Registrar materia\n");
@@ -253,6 +327,10 @@ void mostrarMenu(void) {
     printf("3. Actualizar registro\n");
     printf("4. Eliminar registro\n");
     printf("5. Guardar cambios en archivo\n");
+    printf("6. Promedio por estudiante\n");
+    printf("7. Promedio por materia\n");
+    printf("8. Aprobados/Reprobados por materia\n");
+
     printf("0. Salir\n");
     printf("Opcion: ");
 }
@@ -260,6 +338,7 @@ void mostrarMenu(void) {
 void cargarArchivo(void) {
     FILE *archivo = fopen(ARCHIVO_DATOS, "r");
     if (archivo == NULL) {
+        printf("No existe archivo previo. Se iniciara con registros vacios.\n");
         return;
     }
 
@@ -336,6 +415,7 @@ void cargarArchivo(void) {
     }
 
     fclose(archivo);
+    printf("Datos cargados correctamente desde %s.\n", ARCHIVO_DATOS);
 }
 
 int guardarArchivo(void) {
@@ -360,5 +440,6 @@ int guardarArchivo(void) {
     }
 
     fclose(archivo);
+    printf("Archivo %s actualizado correctamente.\n", ARCHIVO_DATOS);
     return 1;
 }
