@@ -17,6 +17,9 @@ typedef struct {
     float notaP1;
     float notaP2;
     float notaP3;
+    float ponderacionP1;
+    float ponderacionP2;
+    float ponderacionP3;
     
 } Nota;
 

@@ -105,6 +105,21 @@ static float leerNota(const char *prompt) {
         printf("Entrada invalida. Ingrese un numero entre 1 y 10 con hasta 2 decimales.\n");
     }
 }
+static float leerPonderacion(const char *prompt) {
+    char buffer[32];
+    float valor;
+
+    while (1) {
+        printf("%s", prompt);
+        safeReadLine(buffer, sizeof(buffer));
+
+        if (sscanf(buffer, "%f", &valor) == 1 && valor >= 0.0f && valor <= 100.0f) {
+            return valor;
+        }
+
+        printf("Entrada invalida. Ingrese una ponderacion entre 0 y 100.\n");
+    }
+}
 
 void registrarMateria(void) {
     if (registroCount >= MAX_REGISTROS) {
@@ -157,7 +172,18 @@ void registrarMateria(void) {
     nueva.notaP1 = leerNota("Nota P1: ");
     nueva.notaP2 = leerNota("Nota P2: ");
     nueva.notaP3 = leerNota("Nota P3: ");
+    nueva.ponderacionP1 = leerPonderacion("Ponderacion P1: ");
+    nueva.ponderacionP2 = leerPonderacion("Ponderacion P2: ");
+    nueva.ponderacionP3 = leerPonderacion("Ponderacion P3: ");
 
+float suma = nueva.ponderacionP1 +
+             nueva.ponderacionP2 +
+             nueva.ponderacionP3;
+
+if (suma < 99.99f || suma > 100.01f) {
+    printf("Error: las ponderaciones deben sumar 100.\n");
+    return;
+}
     registros[registroCount++] = nueva;
     printf("Registro guardado correctamente.\n");
 }
@@ -220,7 +246,9 @@ void eliminarRegistro(void) {
 }
 
 static float calcularNotaFinal(const Nota *nota) {
-    return (nota->notaP1 + nota->notaP2 + nota->notaP3) / 3.0f;
+    return (nota->notaP1 * nota->ponderacionP1 +
+            nota->notaP2 * nota->ponderacionP2 +
+            nota->notaP3 * nota->ponderacionP3) / 100.0f;
 }
 
 void listarMaterias(void) {
@@ -408,6 +436,14 @@ void cargarArchivo(void) {
             continue;
         }
         nota.notaP3 = strtof(token, NULL);
+        token = strtok(NULL, ";");
+nota.ponderacionP1 = token != NULL ? strtof(token, NULL) : 30.0f;
+
+token = strtok(NULL, ";");
+nota.ponderacionP2 = token != NULL ? strtof(token, NULL) : 30.0f;
+
+token = strtok(NULL, ";");
+nota.ponderacionP3 = token != NULL ? strtof(token, NULL) : 40.0f;
 
         if (registroCount < MAX_REGISTROS && !existeRegistro(nota.codigoMateria, nota.codigoEstudiante)) {
             registros[registroCount++] = nota;
@@ -425,10 +461,10 @@ int guardarArchivo(void) {
         return 0;
     }
 
-    fprintf(archivo, "codigo_materia;nombre_materia;carrera;codigo_estudiante;nombre_estudiante;nota_p1;nota_p2;nota_p3\n");
+    fprintf(archivo, "codigo_materia;nombre_materia;carrera;codigo_estudiante;nombre_estudiante;nota_p1;nota_p2;nota_p3;ponderacion_p1;ponderacion_p2;ponderacion_p3\n");   
     for (int i = 0; i < registroCount; i++) {
         const Nota *n = &registros[i];
-        fprintf(archivo, "%s;%s;%s;%s;%s;%.2f;%.2f;%.2f\n",
+        fprintf(archivo, "%s;%s;%s;%s;%s;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f\n",
                 n->codigoMateria,
                 n->nombreMateria,
                 n->carrera,
@@ -436,7 +472,11 @@ int guardarArchivo(void) {
                 n->nombreEstudiante,
                 n->notaP1,
                 n->notaP2,
-                n->notaP3);
+                n->notaP3,
+                n->ponderacionP1,
+                n->ponderacionP2,
+                n->ponderacionP3);
+                
     }
 
     fclose(archivo);

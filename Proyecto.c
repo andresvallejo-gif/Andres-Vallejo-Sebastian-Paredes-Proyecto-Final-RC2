@@ -22,6 +22,12 @@ int main(void) {
             if (guardarArchivo()) {
                 printf("Cambios guardados en %s.\n", ARCHIVO_DATOS);
             }
+        } else if (strcmp(opcion, "6") == 0) {
+            promedioPorEstudiante();
+        } else if (strcmp(opcion, "7") == 0) {
+            promedioPorMateria();
+        } else if (strcmp(opcion, "8") == 0) {
+            aprobadosReprobadosPorMateria();
         } else if (strcmp(opcion, "0") == 0) {
             if (guardarArchivo()) {
                 printf("Cambios guardados en %s.\n", ARCHIVO_DATOS);
