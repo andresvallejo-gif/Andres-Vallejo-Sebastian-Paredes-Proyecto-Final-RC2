@@ -62,6 +62,50 @@ static int existeRegistro(const char *codigoMateria, const char *codigoEstudiant
     return 0;
 }
 
+static int buscarRegistroIndex(const char *codigoMateria, const char *codigoEstudiante) {
+    for (int i = 0; i < registroCount; i++) {
+        if (strcmp(registros[i].codigoMateria, codigoMateria) == 0 &&
+            strcmp(registros[i].codigoEstudiante, codigoEstudiante) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+static int confirmarAccion(const char *mensaje) {
+    char respuesta[8];
+    printf("%s (S/N): ", mensaje);
+    safeReadLine(respuesta, sizeof(respuesta));
+    return respuesta[0] == 'S' || respuesta[0] == 's';
+}
+
+static void actualizarCampoString(const char *prompt, char *dest, int size) {
+    char buffer[MAX_NOMBRE];
+    printf("%s (Enter para mantener: %s): ", prompt, dest);
+    safeReadLine(buffer, sizeof(buffer));
+    if (buffer[0] != '\0') {
+        strncpy(dest, buffer, size - 1);
+        dest[size - 1] = '\0';
+    }
+}
+
+static void leerNotaOpcional(const char *prompt, float *valorActual) {
+    char buffer[32];
+    float valor;
+    while (1) {
+        printf("%s (Enter para mantener %.2f): ", prompt, *valorActual);
+        safeReadLine(buffer, sizeof(buffer));
+        if (buffer[0] == '\0') {
+            return;
+        }
+        if (sscanf(buffer, "%f", &valor) == 1 && valor >= 1.0f && valor <= 10.0f) {
+            *valorActual = valor;
+            return;
+        }
+        printf("Entrada invalida. Ingrese un numero entre 1 y 10 o deje en blanco.\n");
+    }
+}
+
 static float leerNota(const char *prompt) {
     char buffer[32];
     float valor;
@@ -133,6 +177,63 @@ static void registrarMateria(void) {
     printf("Registro guardado correctamente.\n");
 }
 
+static void actualizarRegistro(void) {
+    char codigoMateria[MAX_CODIGO];
+    char codigoEstudiante[MAX_CODIGO];
+
+    printf("Codigo de materia: ");
+    safeReadLine(codigoMateria, sizeof(codigoMateria));
+    printf("Codigo de estudiante: ");
+    safeReadLine(codigoEstudiante, sizeof(codigoEstudiante));
+
+    int indice = buscarRegistroIndex(codigoMateria, codigoEstudiante);
+    if (indice < 0) {
+        printf("Registro no encontrado.\n");
+        return;
+    }
+
+    Nota *registro = &registros[indice];
+    printf("Registro encontrado:\n");
+    printf("Materia: %s | Estudiante: %s\n", registro->nombreMateria, registro->nombreEstudiante);
+
+    actualizarCampoString("Nuevo nombre de materia", registro->nombreMateria, sizeof(registro->nombreMateria));
+    actualizarCampoString("Nueva carrera", registro->carrera, sizeof(registro->carrera));
+    actualizarCampoString("Nuevo nombre de estudiante", registro->nombreEstudiante, sizeof(registro->nombreEstudiante));
+
+    leerNotaOpcional("Nueva nota P1", &registro->notaP1);
+    leerNotaOpcional("Nueva nota P2", &registro->notaP2);
+    leerNotaOpcional("Nueva nota P3", &registro->notaP3);
+
+    printf("Registro actualizado correctamente.\n");
+}
+
+static void eliminarRegistro(void) {
+    char codigoMateria[MAX_CODIGO];
+    char codigoEstudiante[MAX_CODIGO];
+
+    printf("Codigo de materia: ");
+    safeReadLine(codigoMateria, sizeof(codigoMateria));
+    printf("Codigo de estudiante: ");
+    safeReadLine(codigoEstudiante, sizeof(codigoEstudiante));
+
+    int indice = buscarRegistroIndex(codigoMateria, codigoEstudiante);
+    if (indice < 0) {
+        printf("Registro no encontrado.\n");
+        return;
+    }
+
+    if (!confirmarAccion("Confirma eliminar este registro")) {
+        printf("Eliminacion cancelada.\n");
+        return;
+    }
+
+    for (int i = indice; i < registroCount - 1; i++) {
+        registros[i] = registros[i + 1];
+    }
+    registroCount--;
+    printf("Registro eliminado correctamente.\n");
+}
+
 static float calcularNotaFinal(const Nota *nota) {
     return (nota->notaP1 + nota->notaP2 + nota->notaP3) / 3.0f;
 }
@@ -164,6 +265,8 @@ static void mostrarMenu(void) {
     printf("\n--- Menu principal ---\n");
     printf("1. Registrar materia\n");
     printf("2. Listar materias\n");
+    printf("3. Actualizar registro\n");
+    printf("4. Eliminar registro\n");
     printf("0. Salir\n");
     printf("Opcion: ");
 }
@@ -179,6 +282,10 @@ int main(void) {
             registrarMateria();
         } else if (strcmp(opcion, "2") == 0) {
             listarMaterias();
+        } else if (strcmp(opcion, "3") == 0) {
+            actualizarRegistro();
+        } else if (strcmp(opcion, "4") == 0) {
+            eliminarRegistro();
         } else if (strcmp(opcion, "0") == 0) {
             printf("Saliendo...\n");
             break;
