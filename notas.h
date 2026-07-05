@@ -17,6 +17,7 @@ typedef struct {
     float notaP1;
     float notaP2;
     float notaP3;
+    
 } Nota;
 
 void safeReadLine(char *buffer, int size);
@@ -27,5 +28,9 @@ void actualizarRegistro(void);
 void eliminarRegistro(void);
 void listarMaterias(void);
 void mostrarMenu(void);
+void promedioPorEstudiante(void);
+void promedioPorMateria(void);
+void aprobadosReprobadosPorMateria(void);
+
 
 #endif // NOTAS_H
